@@ -2,7 +2,7 @@
   "description": "That is a test NFT of weird Sponge Bob thumb.😁😁😁",
   "external_url": "https://github.com/AsonCS/epic_nfts",
   "image": "https://raw.githubusercontent.com/AsonCS/epic_nfts/master/_public/sponge_bob.jpg",
-  "name": "Bob Esponja",
+  "name": "Sponge Bob",
   "attributes": [
     {
       "trait_type": "Weird_Level",
