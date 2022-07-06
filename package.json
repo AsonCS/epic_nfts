@@ -1,6 +1,7 @@
 {
   "scripts": {
-	"run": "npx hardhat run scripts/run.ts"
+	"run": "npx hardhat run scripts/run.ts",
+	"deploy": "npx hardhat run scripts/deploy.ts --network rinkeby"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.6",
