@@ -1,0 +1,16 @@
+{
+  "description": "That is a test NFT of svg Home.:):):)",
+  "external_url": "https://github.com/AsonCS/epic_nfts",
+  "image": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNjAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiPgoJPHN0eWxlPgoJCXRleHQgewoJCQlmaWxsOiAjOGI0NTEzOwoJCQlmb250LWZhbWlseTogbW9ub3NwYWNlOwoJCQlmb250LXNpemU6IDFweDsKCQkJZm9udC1zdHlsZTogaXRhbGljOwoJCQlmb250LXdlaWdodDogOTAwOwoJCX0KCTwvc3R5bGU+CiAgICA8cGF0aCBmaWxsPSIjOGI0NTEzIiBkPSJNMTAgMTl2LTVoNHY1YzAgLjU1LjQ1IDEgMSAxaDNjLjU1IDAgMS0uNDUgMS0xdi03aDEuN2MuNDYgMCAuNjgtLjU3LjMzLS44N0wxMi42NyAzLjZjLS4zOC0uMzQtLjk2LS4zNC0xLjM0IDBsLTguMzYgNy41M2MtLjM0LjMtLjEzLjg3LjMzLjg3SDV2N2MwIC41NS40NSAxIDEgMWgzYy41NSAwIDEtLjQ1IDEtMXoiLz4KCTxyZWN0IHg9IjAiIHk9IjIyLjgiIHdpZHRoPSI0LjYiIGhlaWdodD0iMS4zIiBmaWxsPSIjOGI0NTEzNDQiIC8+Cgk8dGV4dCB4PSIwLjIiIHk9IjIzLjgiPiMzIEhvbWU8L3RleHQ+Cjwvc3ZnPgo=",
+  "name": "Home",
+  "attributes": [
+    {
+      "trait_type": "Object",
+      "value": "Home"
+    },
+    {
+      "trait_type": "Brightness",
+      "value": 6
+    }
+  ]
+}

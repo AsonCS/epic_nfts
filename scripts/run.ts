@@ -9,14 +9,17 @@ async function main() {
 	console.log('Contract deployed to:', nftContract.address)
 
 	// Chama a função.
-	let txn = await nftContract.makeAnEpicNFT('sponge_bob')
-
+	let txn = await nftContract.makeAnEpicNFT()
 	// Espera ela ser minerada.
 	await txn.wait()
 
 	// Minta outra NFT por diversão.
-	txn = await nftContract.makeAnEpicNFT('truck')
+	txn = await nftContract.makeAnEpicNFT()
+	// Espera ela ser minerada.
+	await txn.wait()
 
+	// Minta outra NFT por diversão.
+	txn = await nftContract.makeAnEpicNFT()
 	// Espera ela ser minerada.
 	await txn.wait()
 }
