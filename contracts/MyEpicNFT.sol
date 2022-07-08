@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.1;
 
 // Primeiro importamos alguns contratos do OpenZeppelin.
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "hardhat/console.sol";
+
+// Precisamos importar essa funcao de base64 que acabamos de criar
+import {Base64} from "./libraries/Base64.sol";
 
 // Nós herdamos o contrato que importamos. Isso significa que
 // teremos acesso aos métodos do contrato herdado.
@@ -13,38 +16,155 @@ contract MyEpicNFT is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-	string[] private data;
+    string private _part1 =
+        "<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 24 24'><style>text{fill:";
+    string private _part2 =
+        ";font-family:monospace;font-size:1px;font-style:italic;font-weight:900;}rect{fill:";
+    string private _part3 = ";fill-opacity:0.4}svg{background-color:";
+    string private _part4 = ";}</style><path fill='";
+    string private _part5 =
+        "' d='M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z'/><rect x='0' y='22.8' width='24' height='1.3'/><text x='0.2' y='23.8'>#";
+    string private _part6 = "</text></svg>";
+
+    string private _part0json = "{\"description\":\"That is the test NFT #";
+	string private _part1json = " of svg ";
+	string private _part2json = ".:):):)\",\"external_url\":\"https://github.com/AsonCS/epic_nfts\",\"image\":\"";
+	string private _part3json = "\",\"name\":\"";
+	string private _part4json = "\",\"attributes\":[{\"trait_type\":\"Background\",\"value\":\"";
+	string private _part5json = "\"},{\"trait_type\":\"Color\",\"value\":\"";
+	string private _part6json = "\"}]}";
+
+    string[] private _colors = [
+        "red",
+        "blue",
+        "green",
+        "orange",
+        "red",
+        "blue",
+        "green",
+        "orange",
+        "red",
+        "blue",
+        "green",
+        "orange"
+    ];
+    string[] private _backgroundColors = [
+        "black",
+        "white",
+        "brown",
+        "white",
+        "black",
+        "brown",
+        "black",
+        "white",
+        "brown",
+        "white",
+        "brown"
+    ];
 
     // Nós precisamos passar o nome do nosso token NFT e o símbolo dele.
-    constructor() payable ERC721("SquareNFT", "SQUARE") {
+    constructor() payable ERC721("SvgCollored", "SvgC") {
         // Quero que comece por 1
         _tokenIds.increment();
-		// Carregar nfts
-		data.push("");
-		data.push("data:application/json;base64,ewogICJkZXNjcmlwdGlvbiI6ICJUaGF0IGlzIGEgdGVzdCBORlQgb2Ygc3ZnIExpZ2h0IFR1cm5lZCBPbi46KTopOikiLAogICJleHRlcm5hbF91cmwiOiAiaHR0cHM6Ly9naXRodWIuY29tL0Fzb25DUy9lcGljX25mdHMiLAogICJpbWFnZSI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSTJNREFpSUdobGFXZG9kRDBpTmpBd0lpQjJhV1YzUW05NFBTSXdJREFnTWpRZ01qUWlQZ29KUEhOMGVXeGxQZ29KQ1hSbGVIUWdld29KQ1FsbWFXeHNPaUFqWkdSa1pEQXdPd29KQ1FsbWIyNTBMV1poYldsc2VUb2diVzl1YjNOd1lXTmxPd29KQ1FsbWIyNTBMWE5wZW1VNklERndlRHNLQ1FrSlptOXVkQzF6ZEhsc1pUb2dhWFJoYkdsak93b0pDUWxtYjI1MExYZGxhV2RvZERvZ09UQXdPd29KQ1gwS0NUd3ZjM1I1YkdVK0NnazhjR0YwYUNCbWFXeHNQU0lqWkdSa1pEQXdJaUJrUFNKTk5DNHlOU0F4T1M0M09XTXVNemt1TXprZ01TNHdNaTR6T1NBeExqUXhJREJzTGpNNUxTNHpPV011TXprdExqTTVMak00TFRFdU1ESWdNQzB4TGpSc0xTNHdNUzB1TURGakxTNHpPUzB1TXprdE1TNHdNaTB1TXprdE1TNDBNU0F3YkMwdU16a3VNemxqTFM0ek9DNDBMUzR6T0NBeExqQXlMakF4SURFdU5ERjZUVEV4TGprNUlESXpTREV5WXk0MU5TQXdJQzQ1T1MwdU5EUXVPVGt0TGprNWRpMHVPVFpqTUMwdU5UVXRMalEwTFM0NU9TMHVPVGt0TGprNWFDMHVNREZqTFM0MU5TQXdMUzQ1T1M0ME5DMHVPVGt1T1RsMkxqazJZekFnTGpVMUxqUTBMams1TGprNUxqazVlazB6TGpBeElERXhMakExU0RFdU9UbGpMUzQxTlNBd0xTNDVPUzQwTkMwdU9Ua3VPVGwyTGpBeFl6QWdMalUxTGpRMExqazVMams1TGprNVNETmpMalUxSURBZ0xqazVMUzQwTkM0NU9TMHVPVGwyTFM0d01XTXVNREV0TGpVMUxTNDBNeTB1T1RrdExqazRMUzQ1T1hwTk1UVWdOaTQ0TmxZekxqQTFZekF0TGpVMUxTNDBOUzB4TFRFdE1XZ3ROR010TGpVMUlEQXRNU0F1TkRVdE1TQXhkak11T0RGakxUSXVNRFFnTVM0eE9DMHpMak15SURNdU5USXRNaTQ1TXlBMkxqRXpMalFnTWk0Mk1TQXlMalUySURRdU55QTFMakU0SURVdU1ESWdNeTQyTkM0ME5DQTJMamMxTFRJdU5DQTJMamMxTFRVdU9UVWdNQzB5TGpJekxURXVNakV0TkM0eE5pMHpMVFV1TW5wdE5TQTFMakU0ZGk0d01XTXdJQzQxTlM0ME5DNDVPUzQ1T1M0NU9VZ3lNbU11TlRVZ01DQXVPVGt0TGpRMExqazVMUzQ1T1hZdExqQXhZekF0TGpVMUxTNDBOQzB1T1RrdExqazVMUzQ1T1dndE1TNHdNV010TGpVMUlEQXRMams1TGpRMExTNDVPUzQ1T1hwdExUSXVNRFlnTnk0ek4yd3VNemt1TXpsakxqTTVMak01SURFdU1ESXVNemtnTVM0ME1TQXdJQzR6T1MwdU16a3VNemt0TVM0d01pQXdMVEV1TkRGc0xTNHpPUzB1TXpsakxTNHpPUzB1TXprdE1TNHdNaTB1TXpndE1TNDBJREF0TGpRdU5DMHVOQ0F4TGpBeUxTNHdNU0F4TGpReGVpSXZQZ29KUEhKbFkzUWdlRDBpTUNJZ2VUMGlNakl1T0NJZ2QybGtkR2c5SWpFeExqTWlJR2hsYVdkb2REMGlNUzR6SWlCbWFXeHNQU0lqWkdSa1pEQXdORFFpSUM4K0NnazhkR1Y0ZENCNFBTSXdMaklpSUhrOUlqSXpMamdpUGlNeElFeHBaMmgwSUZSMWNtNWxaQ0JQYmp3dmRHVjRkRDRLUEM5emRtYytDZz09IiwKICAibmFtZSI6ICJMaWdodCBUdXJuZWQgT24iLAogICJhdHRyaWJ1dGVzIjogWwogICAgewogICAgICAidHJhaXRfdHlwZSI6ICJPYmplY3QiLAogICAgICAidmFsdWUiOiAiTGlnaHQiCiAgICB9LAogICAgewogICAgICAidHJhaXRfdHlwZSI6ICJCcmlnaHRuZXNzIiwKICAgICAgInZhbHVlIjogMTAKICAgIH0KICBdCn0K");
-		data.push("data:application/json;base64,ewogICJkZXNjcmlwdGlvbiI6ICJUaGF0IGlzIGEgdGVzdCBORlQgb2Ygc3ZnIExpZ2h0IFR1cm5lZCBPZmYuOik6KTopIiwKICAiZXh0ZXJuYWxfdXJsIjogImh0dHBzOi8vZ2l0aHViLmNvbS9Bc29uQ1MvZXBpY19uZnRzIiwKICAiaW1hZ2UiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhkcFpIUm9QU0kyTURBaUlHaGxhV2RvZEQwaU5qQXdJaUIyYVdWM1FtOTRQU0l3SURBZ01qUWdNalFpUGdvSlBITjBlV3hsUGdvSkNYUmxlSFFnZXdvSkNRbG1hV3hzT2lBall6VmpOV00xT3dvSkNRbG1iMjUwTFdaaGJXbHNlVG9nYlc5dWIzTndZV05sT3dvSkNRbG1iMjUwTFhOcGVtVTZJREZ3ZURzS0NRa0pabTl1ZEMxemRIbHNaVG9nYVhSaGJHbGpPd29KQ1FsbWIyNTBMWGRsYVdkb2REb2dPVEF3T3dvSkNYMEtDVHd2YzNSNWJHVStDZ2s4Y0dGMGFDQm1hV3hzUFNJall6VmpOV00xSWlCemRISnZhMlU5SWlOR1JrWkdSa1lpSUdROUlrMDBMakkxSURFNUxqYzVZeTR6T1M0ek9TQXhMakF5TGpNNUlERXVOREVnTUd3dU16a3RMak01WXk0ek9TMHVNemt1TXpndE1TNHdNaUF3TFRFdU5Hd3RMakF4TFM0d01XTXRMak01TFM0ek9TMHhMakF5TFM0ek9TMHhMalF4SURCc0xTNHpPUzR6T1dNdExqTTRMalF0TGpNNElERXVNREl1TURFZ01TNDBNWHBOTVRFdU9Ua2dNak5JTVRKakxqVTFJREFnTGprNUxTNDBOQzQ1T1MwdU9UbDJMUzQ1Tm1Nd0xTNDFOUzB1TkRRdExqazVMUzQ1T1MwdU9UbG9MUzR3TVdNdExqVTFJREF0TGprNUxqUTBMUzQ1T1M0NU9YWXVPVFpqTUNBdU5UVXVORFF1T1RrdU9Ua3VPVGw2VFRNdU1ERWdNVEV1TURWSU1TNDVPV010TGpVMUlEQXRMams1TGpRMExTNDVPUzQ1T1hZdU1ERmpNQ0F1TlRVdU5EUXVPVGt1T1RrdU9UbElNMk11TlRVZ01DQXVPVGt0TGpRMExqazVMUzQ1T1hZdExqQXhZeTR3TVMwdU5UVXRMalF6TFM0NU9TMHVPVGd0TGprNWVrMHhOU0EyTGpnMlZqTXVNRFZqTUMwdU5UVXRMalExTFRFdE1TMHhhQzAwWXkwdU5UVWdNQzB4SUM0ME5TMHhJREYyTXk0NE1XTXRNaTR3TkNBeExqRTRMVE11TXpJZ015NDFNaTB5TGpreklEWXVNVE11TkNBeUxqWXhJREl1TlRZZ05DNDNJRFV1TVRnZ05TNHdNaUF6TGpZMExqUTBJRFl1TnpVdE1pNDBJRFl1TnpVdE5TNDVOU0F3TFRJdU1qTXRNUzR5TVMwMExqRTJMVE10TlM0eWVtMDFJRFV1TVRoMkxqQXhZekFnTGpVMUxqUTBMams1TGprNUxqazVTREl5WXk0MU5TQXdJQzQ1T1MwdU5EUXVPVGt0TGprNWRpMHVNREZqTUMwdU5UVXRMalEwTFM0NU9TMHVPVGt0TGprNWFDMHhMakF4WXkwdU5UVWdNQzB1T1RrdU5EUXRMams1TGprNWVtMHRNaTR3TmlBM0xqTTNiQzR6T1M0ek9XTXVNemt1TXprZ01TNHdNaTR6T1NBeExqUXhJREFnTGpNNUxTNHpPUzR6T1MweExqQXlJREF0TVM0ME1Xd3RMak01TFM0ek9XTXRMak01TFM0ek9TMHhMakF5TFM0ek9DMHhMalFnTUMwdU5DNDBMUzQwSURFdU1ESXRMakF4SURFdU5ERjZJaTgrQ2drOGNtVmpkQ0I0UFNJd0lpQjVQU0l5TWk0NElpQjNhV1IwYUQwaU1URXVPQ0lnYUdWcFoyaDBQU0l4TGpNaUlHWnBiR3c5SWlOak5XTTFZelUwTkNJZ0x6NEtDVHgwWlhoMElIZzlJakF1TWlJZ2VUMGlNak11T0NJK0l6SWdUR2xuYUhRZ1ZIVnlibVZrSUU5bVpqd3ZkR1Y0ZEQ0S1BDOXpkbWMrQ2c9PSIsCiAgIm5hbWUiOiAiTGlnaHQgVHVybmVkIE9mZiIsCiAgImF0dHJpYnV0ZXMiOiBbCiAgICB7CiAgICAgICJ0cmFpdF90eXBlIjogIk9iamVjdCIsCiAgICAgICJ2YWx1ZSI6ICJMaWdodCIKICAgIH0sCiAgICB7CiAgICAgICJ0cmFpdF90eXBlIjogIkJyaWdodG5lc3MiLAogICAgICAidmFsdWUiOiAzCiAgICB9CiAgXQp9Cg==");
-        data.push("data:application/json;base64,ewogICJkZXNjcmlwdGlvbiI6ICJUaGF0IGlzIGEgdGVzdCBORlQgb2Ygc3ZnIEhvbWUuOik6KTopIiwKICAiZXh0ZXJuYWxfdXJsIjogImh0dHBzOi8vZ2l0aHViLmNvbS9Bc29uQ1MvZXBpY19uZnRzIiwKICAiaW1hZ2UiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhkcFpIUm9QU0kyTURBaUlHaGxhV2RvZEQwaU5qQXdJaUIyYVdWM1FtOTRQU0l3SURBZ01qUWdNalFpUGdvSlBITjBlV3hsUGdvSkNYUmxlSFFnZXdvSkNRbG1hV3hzT2lBak9HSTBOVEV6T3dvSkNRbG1iMjUwTFdaaGJXbHNlVG9nYlc5dWIzTndZV05sT3dvSkNRbG1iMjUwTFhOcGVtVTZJREZ3ZURzS0NRa0pabTl1ZEMxemRIbHNaVG9nYVhSaGJHbGpPd29KQ1FsbWIyNTBMWGRsYVdkb2REb2dPVEF3T3dvSkNYMEtDVHd2YzNSNWJHVStDaUFnSUNBOGNHRjBhQ0JtYVd4c1BTSWpPR0kwTlRFeklpQmtQU0pOTVRBZ01UbDJMVFZvTkhZMVl6QWdMalUxTGpRMUlERWdNU0F4YUROakxqVTFJREFnTVMwdU5EVWdNUzB4ZGkwM2FERXVOMk11TkRZZ01DQXVOamd0TGpVM0xqTXpMUzQ0TjB3eE1pNDJOeUF6TGpaakxTNHpPQzB1TXpRdExqazJMUzR6TkMweExqTTBJREJzTFRndU16WWdOeTQxTTJNdExqTTBMak10TGpFekxqZzNMak16TGpnM1NEVjJOMk13SUM0MU5TNDBOU0F4SURFZ01XZ3pZeTQxTlNBd0lERXRMalExSURFdE1Yb2lMejRLQ1R4eVpXTjBJSGc5SWpBaUlIazlJakl5TGpnaUlIZHBaSFJvUFNJMExqWWlJR2hsYVdkb2REMGlNUzR6SWlCbWFXeHNQU0lqT0dJME5URXpORFFpSUM4K0NnazhkR1Y0ZENCNFBTSXdMaklpSUhrOUlqSXpMamdpUGlNeklFaHZiV1U4TDNSbGVIUStDand2YzNablBnbz0iLAogICJuYW1lIjogIkhvbWUiLAogICJhdHRyaWJ1dGVzIjogWwogICAgewogICAgICAidHJhaXRfdHlwZSI6ICJPYmplY3QiLAogICAgICAidmFsdWUiOiAiSG9tZSIKICAgIH0sCiAgICB7CiAgICAgICJ0cmFpdF90eXBlIjogIkJyaWdodG5lc3MiLAogICAgICAidmFsdWUiOiA2CiAgICB9CiAgXQp9Cg==");
-		console.log("Esse eh meu contrato de NFT! Tchu-hu");
+        // console.log("Esse eh meu contrato de NFT! Tchu-hu");
+    }
+
+    function buildSvg(
+        string memory color,
+        string memory backgroundColor,
+        string memory tokenId,
+        string memory nftName
+    ) public view returns (string memory) {
+        bytes memory svg = abi.encodePacked(_part1, color);
+        svg = abi.encodePacked(svg, _part2);
+        svg = abi.encodePacked(svg, color);
+        svg = abi.encodePacked(svg, _part3);
+        svg = abi.encodePacked(svg, backgroundColor);
+        svg = abi.encodePacked(svg, _part4);
+        svg = abi.encodePacked(svg, color);
+        svg = abi.encodePacked(svg, _part5);
+        svg = abi.encodePacked(svg, tokenId);
+        svg = abi.encodePacked(svg, " ");
+        svg = abi.encodePacked(svg, nftName);
+        svg = abi.encodePacked(svg, _part6);
+        // console.log("\n");
+        // console.log("\n");
+        // console.log(string(svg));
+        string memory finalSvg = "data:image/svg+xml;base64,";
+        finalSvg = string(abi.encodePacked(finalSvg, Base64.encode(svg)));
+        // console.log("\n");
+        // console.log("\n");
+        // console.log(finalSvg);
+        return finalSvg;
+    }
+
+    function buildJson(
+        string memory color,
+        string memory backgroundColor,
+        string memory tokenId,
+        string memory nftName,
+        string memory image
+    ) public view returns (string memory) {
+        bytes memory json = abi.encodePacked(_part0json, tokenId);
+        json = abi.encodePacked(json, _part1json);
+        json = abi.encodePacked(json, nftName);
+        json = abi.encodePacked(json, _part2json);
+        json = abi.encodePacked(json, image);
+        json = abi.encodePacked(json, _part3json);
+        json = abi.encodePacked(json, nftName);
+        json = abi.encodePacked(json, _part4json);
+        json = abi.encodePacked(json, backgroundColor);
+        json = abi.encodePacked(json, _part5json);
+        json = abi.encodePacked(json, color);
+        json = abi.encodePacked(json, _part6json);
+        // console.log("\n");
+        // console.log("\n");
+        // console.log(string(json));
+        string memory finalJson = "data:application/json;base64,";
+        finalJson = string(abi.encodePacked(finalJson, Base64.encode(json)));
+        // console.log("\n");
+        // console.log("\n");
+        // console.log(finalJson);
+        return finalJson;
     }
 
     // Uma função que o nosso usuário irá chamar para pegar sua NFT.
-    function makeAnEpicNFT() public {
+    function makeAnEpicNFT(string memory _nftName) public {
         // Pega o tokenId atual, que começa por 1.
         uint256 newItemId = _tokenIds.current();
 
         // Minta ("cunha") o NFT para o sender (quem ativa o contrato) usando msg.sender.
         _safeMint(msg.sender, newItemId);
 
+        string memory color = _colors[(block.timestamp) % _colors.length];
+        string memory backgroundColor = _backgroundColors[
+            (block.timestamp) % _backgroundColors.length
+        ];
+        string memory svg = buildSvg(
+            color,
+            backgroundColor,
+            Strings.toString(newItemId),
+            _nftName
+        );
+        // pego todos os metadados de JSON e codifico com base64.
+        string memory json = buildJson(
+            color,
+            backgroundColor,
+            Strings.toString(newItemId),
+            _nftName,
+            svg
+        );
+
         // Designa os dados do NFT.
         _setTokenURI(
-			newItemId,
-			data[newItemId]
-		);
-        console.log(
-            "Uma NFT com o ID #%s foi mintada para %s",
-            newItemId,
-            msg.sender
+        	newItemId,
+        	json
         );
+        // console.log(
+        //     "Uma NFT com o ID #%s foi mintada para %s",
+        //     newItemId,
+        //     msg.sender
+        // );
 
         // Incrementa o contador para quando o próximo NFT for mintado.
         _tokenIds.increment();

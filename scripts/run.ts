@@ -8,20 +8,26 @@ async function main() {
 	await nftContract.deployed()
 	console.log('Contract deployed to:', nftContract.address)
 
+	let nftName = 'Que legal isso!!!'
 	// Chama a função.
-	let txn = await nftContract.makeAnEpicNFT()
+	let txn = await nftContract.makeAnEpicNFT(nftName)
 	// Espera ela ser minerada.
 	await txn.wait()
+	console.log(`Cunhou NFT #1: ${nftName}`)
 
+	nftName = 'Estou muito feliz!!!'
 	// Minta outra NFT por diversão.
-	txn = await nftContract.makeAnEpicNFT()
+	txn = await nftContract.makeAnEpicNFT(nftName)
 	// Espera ela ser minerada.
 	await txn.wait()
+	console.log(`Cunhou NFT #2: ${nftName}`)
 
+	nftName = 'Por isso!!!'
 	// Minta outra NFT por diversão.
-	txn = await nftContract.makeAnEpicNFT()
+	txn = await nftContract.makeAnEpicNFT(nftName)
 	// Espera ela ser minerada.
 	await txn.wait()
+	console.log(`Cunhou NFT #3: ${nftName}`)
 }
 
 main().catch((error) => {
