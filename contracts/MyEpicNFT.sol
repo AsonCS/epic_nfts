@@ -16,6 +16,10 @@ contract MyEpicNFT is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
+    mapping(address => uint256) private mintedByUser;
+
+    event NewEpicNFTMinted(address sender, uint256 tokenId);
+
     string private _part1 =
         "<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 24 24'><style>text{fill:";
     string private _part2 =
@@ -48,19 +52,22 @@ contract MyEpicNFT is ERC721URIStorage {
         "green",
         "orange"
     ];
+    uint256 private _lastColor = 0;
     string[] private _backgroundColors = [
         "black",
         "white",
         "brown",
-        "white",
-        "black",
-        "brown",
         "black",
         "white",
         "brown",
+        "black",
+        "white",
+        "brown",
+        "black",
         "white",
         "brown"
     ];
+    uint256 private _lastBackgroundColor = 0;
 
     // Nós precisamos passar o nome do nosso token NFT e o símbolo dele.
     constructor() payable ERC721("SvgCollored", "SvgC") {
@@ -105,6 +112,9 @@ contract MyEpicNFT is ERC721URIStorage {
         string memory nftName,
         string memory image
     ) public view returns (string memory) {
+        // console.log("\n");
+        // console.log("\n");
+        // console.log(color, backgroundColor);
         bytes memory json = abi.encodePacked(_part0json, tokenId);
         json = abi.encodePacked(json, _part1json);
         json = abi.encodePacked(json, nftName);
@@ -130,36 +140,48 @@ contract MyEpicNFT is ERC721URIStorage {
 
     // Uma função que o nosso usuário irá chamar para pegar sua NFT.
     function makeAnEpicNFT(string memory _nftName) public {
+        require(mintedByUser[msg.sender] < 20, "User reached max mint amount");
+
         // Pega o tokenId atual, que começa por 1.
         uint256 newItemId = _tokenIds.current();
 
         // Minta ("cunha") o NFT para o sender (quem ativa o contrato) usando msg.sender.
         _safeMint(msg.sender, newItemId);
 
-        string memory color = _colors[(block.timestamp) % _colors.length];
-        string memory backgroundColor = _backgroundColors[
-            (block.timestamp) % _backgroundColors.length
-        ];
+        uint256 colorIdx = (block.timestamp) % _colors.length;
+        if (colorIdx == _lastColor) {
+            colorIdx = colorIdx + 1;
+            if (colorIdx == _colors.length) {
+                colorIdx = 0;
+            }
+        }
+        _lastColor = colorIdx;
+        uint256 backgroundColorIdx = (block.timestamp) %
+            _backgroundColors.length;
+        if (backgroundColorIdx == _lastBackgroundColor) {
+            backgroundColorIdx = backgroundColorIdx + 1;
+            if (backgroundColorIdx == _backgroundColors.length) {
+                backgroundColorIdx = 0;
+            }
+        }
+        _lastBackgroundColor = backgroundColorIdx;
         string memory svg = buildSvg(
-            color,
-            backgroundColor,
+            _colors[colorIdx],
+            _backgroundColors[backgroundColorIdx],
             Strings.toString(newItemId),
             _nftName
         );
         // pego todos os metadados de JSON e codifico com base64.
         string memory json = buildJson(
-            color,
-            backgroundColor,
+            _colors[colorIdx],
+            _backgroundColors[backgroundColorIdx],
             Strings.toString(newItemId),
             _nftName,
             svg
         );
 
         // Designa os dados do NFT.
-        _setTokenURI(
-        	newItemId,
-        	json
-        );
+        _setTokenURI(newItemId, json);
         // console.log(
         //     "Uma NFT com o ID #%s foi mintada para %s",
         //     newItemId,
@@ -168,5 +190,13 @@ contract MyEpicNFT is ERC721URIStorage {
 
         // Incrementa o contador para quando o próximo NFT for mintado.
         _tokenIds.increment();
+
+        mintedByUser[msg.sender] += 1;
+
+        emit NewEpicNFTMinted(msg.sender, newItemId);
+    }
+
+    function getMintedByUser() public view returns (uint256) {
+        return mintedByUser[msg.sender];
     }
 }

@@ -14,26 +14,26 @@ async function main() {
 	await nftContract.deployed()
 	console.log('Contract deployed to:', nftContract.address)
 
-	let nftName = 'Que legal isso!!!'
+	const nftName = 'Que legal isso!!!'
 	// Chama a função.
-	let txn = await nftContract.makeAnEpicNFT(nftName)
+	const txn = await nftContract.makeAnEpicNFT(nftName)
 	// Espera ela ser minerada.
 	await txn.wait()
 	console.log(`Cunhou NFT #1: ${nftName}`)
 
-	nftName = 'Estou muito feliz!!!'
-	// Minta outra NFT por diversão.
-	txn = await nftContract.makeAnEpicNFT(nftName)
-	// Espera ela ser minerada.
-	await txn.wait()
-	console.log(`Cunhou NFT #2: ${nftName}`)
+	// nftName = 'Estou muito feliz!!!'
+	// // Minta outra NFT por diversão.
+	// txn = await nftContract.makeAnEpicNFT(nftName)
+	// // Espera ela ser minerada.
+	// await txn.wait()
+	// console.log(`Cunhou NFT #2: ${nftName}`)
 
-	nftName = 'Por isso!!!'
-	// Minta outra NFT por diversão.
-	txn = await nftContract.makeAnEpicNFT(nftName)
-	// Espera ela ser minerada.
-	await txn.wait()
-	console.log(`Cunhou NFT #3: ${nftName}`)
+	// nftName = 'Por isso!!!'
+	// // Minta outra NFT por diversão.
+	// txn = await nftContract.makeAnEpicNFT(nftName)
+	// // Espera ela ser minerada.
+	// await txn.wait()
+	// console.log(`Cunhou NFT #3: ${nftName}`)
 }
 
 main().catch((error) => {
@@ -62,4 +62,10 @@ SOME4=WavePortal address:  0x65334eea0841B24e9a96bAFa58A7943407074B4B
 SOME5=Cunhou NFT #1: Que legal isso!!!
 SOME6=Cunhou NFT #2: Estou muito feliz!!!
 SOME7=Cunhou NFT #3: Por isso!!!
+
+SOME0=MyEpicNFT 3.0
+SOME2=Deploying contracts with account:  0x7e4d9Fc4bdec1fe100F60041C372270F0E2eDD97
+SOME3=Account balance:  68838689036186359
+SOME4=WavePortal address:  0x65334eea0841B24e9a96bAFa58A7943407074B4B
+SOME5=Cunhou NFT #1: Que legal isso!!!
 */

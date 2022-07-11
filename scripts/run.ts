@@ -3,8 +3,9 @@
 import { ethers } from 'hardhat'
 
 async function main() {
+	const [owner, randomPerson] = await ethers.getSigners()
 	const nftContractFactory = await ethers.getContractFactory('MyEpicNFT')
-	const nftContract = await nftContractFactory.deploy()
+	let nftContract = await nftContractFactory.deploy()
 	await nftContract.deployed()
 	console.log('Contract deployed to:', nftContract.address)
 
@@ -14,6 +15,8 @@ async function main() {
 	// Espera ela ser minerada.
 	await txn.wait()
 	console.log(`Cunhou NFT #1: ${nftName}`)
+	let mintedByUser = await nftContract.getMintedByUser()
+	console.log(`User ${owner.address} has ${mintedByUser} minted amount.`)
 
 	nftName = 'Estou muito feliz!!!'
 	// Minta outra NFT por diversão.
@@ -21,6 +24,8 @@ async function main() {
 	// Espera ela ser minerada.
 	await txn.wait()
 	console.log(`Cunhou NFT #2: ${nftName}`)
+	mintedByUser = await nftContract.getMintedByUser()
+	console.log(`User ${owner.address} has ${mintedByUser} minted amount.`)
 
 	nftName = 'Por isso!!!'
 	// Minta outra NFT por diversão.
@@ -28,6 +33,29 @@ async function main() {
 	// Espera ela ser minerada.
 	await txn.wait()
 	console.log(`Cunhou NFT #3: ${nftName}`)
+	mintedByUser = await nftContract.getMintedByUser()
+	console.log(`User ${owner.address} has ${mintedByUser} minted amount.`)
+
+	// ----------------
+	nftContract = nftContract.connect(randomPerson)
+
+	nftName = 'Estou muito feliz!!!'
+	// Minta outra NFT por diversão.
+	txn = await nftContract.makeAnEpicNFT(nftName)
+	// Espera ela ser minerada.
+	await txn.wait()
+	console.log(`Cunhou NFT #1: ${nftName}`)
+	mintedByUser = await nftContract.getMintedByUser()
+	console.log(`User ${randomPerson.address} has ${mintedByUser} minted amount.`)
+
+	nftName = 'Por isso!!!'
+	// Minta outra NFT por diversão.
+	txn = await nftContract.makeAnEpicNFT(nftName)
+	// Espera ela ser minerada.
+	await txn.wait()
+	console.log(`Cunhou NFT #2: ${nftName}`)
+	mintedByUser = await nftContract.getMintedByUser()
+	console.log(`User ${randomPerson.address} has ${mintedByUser} minted amount.`)
 }
 
 main().catch((error) => {
